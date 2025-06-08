@@ -16,7 +16,6 @@ class ApplicationRepository(
 ) {
     init {
         Log.d("ApplicationRepository", "Initializing ApplicationRepository")
-        // Проверяем подключение к Firestore
         firestore.collection("applications")
             .get()
             .addOnSuccessListener { documents ->
@@ -138,36 +137,6 @@ class ApplicationRepository(
             } ?: Result.failure(IllegalArgumentException("Application ID cannot be null for update"))
         } catch (e: Exception) {
             Result.failure(e)
-        }
-    }
-
-    // Добавляем новый метод для тестирования
-    suspend fun testGetAllApplications(): List<Application> {
-        Log.d("ApplicationRepository", "Testing getAllApplications with get()")
-        return try {
-            val snapshot = firestore.collection("applications")
-                .orderBy("status", Query.Direction.ASCENDING)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .await()
-
-            Log.d("ApplicationRepository", "Got ${snapshot.documents.size} documents")
-
-            snapshot.documents.mapNotNull { document ->
-                try {
-                    Log.d("ApplicationRepository", "Processing document: ${document.id}")
-                    Log.d("ApplicationRepository", "Document data: ${document.data}")
-                    val app = document.toObject(Application::class.java)
-                    Log.d("ApplicationRepository", "Mapped document to Application: $app")
-                    app?.copy(id = document.id)
-                } catch (e: Exception) {
-                    Log.e("ApplicationRepository", "Error mapping document ${document.id}: ${e.message}", e)
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("ApplicationRepository", "Error getting applications", e)
-            emptyList()
         }
     }
 } 
